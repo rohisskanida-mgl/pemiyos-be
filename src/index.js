@@ -21,36 +21,39 @@ app.use("*", logger());
 app.use("*", prettyJSON());
 app.use("*", secureHeaders());
 
-// CORS Configuration
-cors({
-  origin: (origin) => {
-    const allowed = [
-      "http://localhost:3000",
-      "http://localhost:8080",
-      "http://localhost:5173",
-      "http://localhost:4173",
-      "http://127.0.0.1:3000",
-      "http://147.139.209.177",
-      "https://pemiyos-be-production-up.railway.app",
-    ];
+// CORS Configuration - FIXED: Added app.use()
+app.use(
+  "*",
+  cors({
+    origin: (origin) => {
+      const allowed = [
+        "http://localhost:3000",
+        "http://localhost:8080",
+        "http://localhost:5173",
+        "http://localhost:4173",
+        "http://127.0.0.1:3000",
+        "http://147.139.209.177",
+        "https://pemiyos-be-production-up.railway.app",
+      ];
 
-    // Allow Netlify domains
-    if (origin && origin.includes(".netlify.app")) {
-      return origin;
-    }
+      // Allow Netlify domains
+      if (origin && origin.includes(".netlify.app")) {
+        return origin;
+      }
 
-    // Check if origin is in allowed list
-    if (allowed.includes(origin)) {
-      return origin;
-    }
+      // Check if origin is in allowed list
+      if (allowed.includes(origin)) {
+        return origin;
+      }
 
-    return allowed[0]; // fallback
-  },
-  allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowHeaders: ["Content-Type", "Authorization", "X-Pagination"],
-  exposeHeaders: ["X-Pagination"],
-  credentials: true,
-});
+      return allowed[0]; // fallback
+    },
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization", "X-Pagination"],
+    exposeHeaders: ["X-Pagination"],
+    credentials: true,
+  })
+);
 
 // Global error handler
 app.onError((err, c) => {
