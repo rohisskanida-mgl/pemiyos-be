@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync } from "fs";
 import { join, extname } from "path";
 import { writeFile } from "fs/promises";
+
 /**
  * Upload Service
  * Handles file upload operations including folder management and file naming
@@ -105,7 +106,7 @@ class UploadService {
    * Save a single file
    * @param {File} file - File object from form data
    * @param {string} folderName - Folder name (optional)
-   * @returns {Promise<string>} Relative path of saved file
+   * @returns {Promise<Object>} Object with file information
    */
   async saveFile(file, folderName = null) {
     try {
@@ -129,9 +130,16 @@ class UploadService {
       const buffer = Buffer.from(arrayBuffer);
       await writeFile(filePath, buffer);
 
-      // Return relative path from public directory
+      // Return file information
       const relativePath = folderName ? `${folderName}/${fileName}` : fileName;
-      return relativePath;
+      return {
+        original_name: file.name,
+        saved_name: fileName,
+        path: relativePath,
+        url: `/${relativePath}`,
+        size: file.size,
+        type: file.type,
+      };
     } catch (error) {
       throw new Error(`Failed to save file ${file.name}: ${error.message}`);
     }
@@ -141,7 +149,7 @@ class UploadService {
    * Save multiple files
    * @param {File[]} files - Array of file objects
    * @param {string} folderName - Folder name (optional)
-   * @returns {Promise<string[]>} Array of relative paths of saved files
+   * @returns {Promise<Object[]>} Array of file information objects
    */
   async saveFiles(files, folderName = null) {
     const uploadedFiles = [];
@@ -149,15 +157,29 @@ class UploadService {
 
     for (const file of files) {
       try {
-        const filePath = await this.saveFile(file, folderName);
-        uploadedFiles.push(filePath);
+        const fileInfo = await this.saveFile(file, folderName);
+        uploadedFiles.push(fileInfo);
       } catch (error) {
-        errors.push(error.message);
+        errors.push({
+          file: file.name,
+          error: error.message,
+        });
       }
     }
 
     if (errors.length > 0) {
-      throw new Error(`Some files failed to upload: ${errors.join(", ")}`);
+      // If all files failed, throw error
+      if (errors.length === files.length) {
+        throw new Error(
+          `All files failed to upload: ${errors.map((e) => e.error).join(", ")}`
+        );
+      }
+      // If some files failed, return partial success with errors
+      return {
+        success: uploadedFiles,
+        failed: errors,
+        message: `${uploadedFiles.length} of ${files.length} files uploaded successfully`,
+      };
     }
 
     return uploadedFiles;

@@ -6,6 +6,7 @@ import { serve } from "@hono/node-server";
 import { connectDatabase } from "./config/database.js";
 import authRoutes from "./routes/auth.routes.js";
 import crudRoutes from "./routes/crud.routes.js";
+import uploadRoutes from "./routes/upload.routes.js";
 import { successResponse, errorResponse } from "./utils/response.util.js";
 import { prettyJSON } from "hono/pretty-json";
 import { secureHeaders } from "hono/secure-headers";
@@ -118,6 +119,7 @@ app.get("/health", (c) => {
 });
 
 // API routes
+app.route("/api/upload", uploadRoutes);
 app.route("/api/auth", authRoutes);
 app.route("/api", crudRoutes);
 

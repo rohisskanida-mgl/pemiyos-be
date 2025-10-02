@@ -1,11 +1,106 @@
 import UploadService from "../services/upload.service.js";
 import { successResponse, errorResponse } from "../utils/response.util.js";
 
+// File constraints configuration
+const fileConstraints = {
+  maxFileSize: 10 * 1024 * 1024, // 10MB
+  maxFiles: 10,
+  allowedExtensions: [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".xls",
+    ".xlsx",
+    ".txt",
+    ".csv",
+    ".webp",
+    ".svg",
+  ],
+};
+
 /**
  * Upload Controller
  * Handles HTTP requests for file upload operations
  */
 export class UploadController {
+  /**
+   * Validate uploaded files
+   * @param {File[]} files - Array of files to validate
+   * @returns {Object} Validation result
+   */
+  static validateFiles(files) {
+    const errors = [];
+
+    // Check if files exist
+    if (!files || files.length === 0) {
+      return { valid: false, errors: ["No files provided"] };
+    }
+
+    // Check number of files
+    if (files.length > fileConstraints.maxFiles) {
+      return {
+        valid: false,
+        errors: [`Maximum ${fileConstraints.maxFiles} files allowed`],
+      };
+    }
+
+    // Validate each file
+    for (const file of files) {
+      // Check file size
+      if (file.size > fileConstraints.maxFileSize) {
+        errors.push(
+          `File ${file.name} exceeds maximum size of ${
+            fileConstraints.maxFileSize / (1024 * 1024)
+          }MB`
+        );
+      }
+
+      // Check file extension
+      const ext = file.name.toLowerCase().substring(file.name.lastIndexOf("."));
+      if (!fileConstraints.allowedExtensions.includes(ext)) {
+        errors.push(
+          `File ${
+            file.name
+          } has unsupported extension. Allowed: ${fileConstraints.allowedExtensions.join(
+            ", "
+          )}`
+        );
+      }
+
+      // Check filename length
+      if (file.name.length > 255) {
+        errors.push(
+          `File ${file.name} has a name that is too long (max 255 characters)`
+        );
+      }
+
+      // Check for dangerous patterns in filename
+      const dangerousPatterns = [
+        /\.\./, // Path traversal
+        /[<>:"|?*]/, // Windows forbidden chars
+        /^\./, // Hidden files
+      ];
+
+      for (const pattern of dangerousPatterns) {
+        if (pattern.test(file.name)) {
+          errors.push(
+            `File ${file.name} contains invalid characters or patterns`
+          );
+          break;
+        }
+      }
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+    };
+  }
+
   /**
    * Handle file upload request
    * @param {Object} c - Hono context object
@@ -13,124 +108,65 @@ export class UploadController {
    */
   static async uploadFiles(c) {
     try {
-      // Get validated data from middleware
-      const { folder_name } = c.req.valid("form");
-      const files = c.get("validatedFiles"); 
+      // Parse form data
+      const formData = await c.req.formData();
+      const folder_name = formData.get("folder_name") || null;
+
+      // Extract files from form data
+      const files = [];
+      for (const [key, value] of formData.entries()) {
+        // Accept both 'files', 'file', or any key that contains a File object
+        if (value instanceof File) {
+          files.push(value);
+        }
+      }
+
+      // Validate files
+      const validation = UploadController.validateFiles(files);
+      if (!validation.valid) {
+        return errorResponse(validation.errors.join("; "), 400);
+      }
+
+      // Validate folder name if provided
+      if (folder_name && !UploadService.validateFolderName(folder_name)) {
+        return errorResponse(
+          "Invalid folder name. Must be ≤20 characters and contain only alphanumeric, underscore, hyphen, and forward slash characters.",
+          400
+        );
+      }
 
       // Upload files using the service
-      const uploadedFiles = await UploadService.saveFiles(
-        files,
-        folder_name || null
-      );
+      const uploadResult = await UploadService.saveFiles(files, folder_name);
+
+      // Check if it's a partial success (has failed files)
+      if (uploadResult.failed && uploadResult.failed.length > 0) {
+        return successResponse(
+          {
+            uploaded: uploadResult.success,
+            failed: uploadResult.failed,
+            message: uploadResult.message,
+          },
+          207 // 207 Multi-Status
+        );
+      }
 
       // Return success response
       return successResponse(
         {
-          data: uploadedFiles,
+          files: uploadResult,
+          count: uploadResult.length,
+          message: "Files uploaded successfully",
         },
-        200
+        201
       );
     } catch (error) {
-      // Return error response
+      console.error("Upload error:", error);
       return errorResponse(error.message || "Failed to upload files", 500);
     }
   }
 
   /**
-   * Handle Excel file upload and read data
-   * @param {Object} c - Hono context object
-   * @returns {Promise<Response>} JSON response with Excel data
-   */
-  static async uploadExcel(c) {
-    try {
-      // Get validated files from middleware
-      const files = c.get("validatedFiles"); // Files validated by custom middleware
-
-      // Validate that at least one file is provided
-      if (!files || files.length === 0) {
-        return errorResponse("No Excel file provided", 400);
-      }
-
-      // Validate that only one Excel file is uploaded
-      if (files.length > 1) {
-        return errorResponse(
-          "Only one Excel file can be processed at a time",
-          400
-        );
-      }
-
-      const excel_file = files[0];
-
-      // Validate file extension
-      const allowed_excel_extensions = [".xlsx", ".xls"];
-      const file_extension = excel_file.name
-        .toLowerCase()
-        .substring(excel_file.name.lastIndexOf("."));
-
-      if (!allowed_excel_extensions.includes(file_extension)) {
-        return errorResponse("Only Excel files (.xlsx, .xls) are allowed", 400);
-      }
-
-      // Upload file to public/excel/ folder using the existing saveFiles service
-      const uploaded_files = await UploadService.saveFiles(
-        [excel_file],
-        "excel"
-      );
-
-      if (!uploaded_files || uploaded_files.length === 0) {
-        return errorResponse("Failed to upload Excel file", 500);
-      }
-
-      const uploaded_file_path = uploaded_files[0];
-
-      // Read Excel data using the excel utility
-      const excel_data = await readExcel(uploaded_file_path);
-
-      // Return the Excel data as array of objects
-      return successResponse(excel_data, 200);
-    } catch (error) {
-      console.error("Excel upload error:", error);
-
-      // Return error response
-      return errorResponse(
-        error.message || "Failed to process Excel file",
-        500
-      );
-    }
-  }
-
-  /**
-   * Handle folder upload with Excel processing
-   * @param {Object} c - Hono context object
-   * @returns {Promise<Response>} JSON response with processing results
-   */
-  static async uploadFolder(c) {
-    try {
-      // Get validated data from middleware
-      const { folder, excel_file, folder_name } = c.get("validatedFolderData");
-
-      // Process folder upload using the service
-      const result = await UploadService.uploadFolder(
-        folder,
-        excel_file,
-        folder_name
-      );
-
-      // Return success response with Excel data
-      return successResponse(result.excel_data, 200);
-    } catch (error) {
-      console.error("Folder upload error:", error);
-
-      // Return error response
-      return errorResponse(
-        error.message || "Failed to process folder upload",
-        500
-      );
-    }
-  }
-
-  /**
-   * Get upload status or file information (optional endpoint)
+   * Get upload status or file information
    * @param {Object} c - Hono context object
    * @returns {Promise<Response>} JSON response with upload info
    */
@@ -138,22 +174,72 @@ export class UploadController {
     try {
       return successResponse({
         message: "Upload endpoint is ready",
-        info: {
+        configuration: {
           max_file_size: `${fileConstraints.maxFileSize / (1024 * 1024)}MB`,
+          max_file_size_bytes: fileConstraints.maxFileSize,
           max_files_per_upload: fileConstraints.maxFiles,
-          supported_folder_name_length: "20 characters max",
+          allowed_extensions: fileConstraints.allowedExtensions,
+        },
+        folder_configuration: {
+          max_folder_name_length: 20,
           folder_name_pattern:
             "alphanumeric, underscore, hyphen, forward slash",
-          file_naming_format:
-            "{folder_name}-{sub_folder}-{UUID}-{first25chars}.{ext}",
-          default_upload_path: "/public",
+          supports_subfolders: true,
+          subfolder_example: "academic_year/2025",
+        },
+        file_naming_format: {
+          with_folder: "{folder_name}-{UUID}-{first25chars}.{ext}",
+          with_subfolder:
+            "{main_folder}-{sub_folder}-{UUID}-{first25chars}.{ext}",
+          without_folder: "{UUID}-{first25chars}.{ext}",
+          uuid_format: "6 characters alphanumeric",
+        },
+        paths: {
+          base_path: "/public",
           custom_upload_path: "/public/{folder_name}",
-          allowed_extensions: fileConstraints.allowedExtensions,
-          validation_rules: {
-            folder_name: "Optional, max 20 chars, alphanumeric + _-/",
-            files: "Required, max 10 files, max 10MB each",
-            filename: "Max 255 chars, no dangerous patterns",
-            extensions: "Must be in allowed list",
+          url_format: "/{folder_name}/{filename}",
+        },
+        usage: {
+          endpoint: "POST /upload",
+          method: "multipart/form-data",
+          content_type: "multipart/form-data",
+          authentication: "Required (Bearer token)",
+          fields: {
+            files: {
+              description: "File or array of files",
+              required: true,
+              type: "File[]",
+              field_name: "Any field name (files, file, image, etc.)",
+            },
+            folder_name: {
+              description: "Optional folder name for organizing uploads",
+              required: false,
+              type: "string",
+              max_length: 20,
+              pattern: "^[a-zA-Z0-9_-/]+$",
+            },
+          },
+          example_curl: `curl -X POST http://your-api/upload \\
+  -H "Authorization: Bearer YOUR_TOKEN" \\
+  -F "files=@document.pdf" \\
+  -F "files=@image.jpg" \\
+  -F "folder_name=documents/2025"`,
+          example_response: {
+            success: true,
+            data: {
+              files: [
+                {
+                  original_name: "document.pdf",
+                  saved_name: "docs-ABC123-document.pdf",
+                  path: "docs/docs-ABC123-document.pdf",
+                  url: "/docs/docs-ABC123-document.pdf",
+                  size: 102400,
+                  type: "application/pdf",
+                },
+              ],
+              count: 1,
+              message: "Files uploaded successfully",
+            },
           },
         },
       });
