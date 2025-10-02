@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { UploadController } from "../controllers/upload.controller.js";
-import { authMiddleware } from '../middleware/auth.middleware.js';
+import { authMiddleware, adminMiddleware } from '../middleware/auth.middleware.js';
 
 /**
  * Upload Routes
@@ -9,7 +9,7 @@ import { authMiddleware } from '../middleware/auth.middleware.js';
 const uploadRoutes = new Hono();
 uploadRoutes.use('*', authMiddleware);
 
-uploadRoutes.post("/", UploadController.uploadFiles);
+uploadRoutes.post("/", adminMiddleware, UploadController.uploadFiles);
 uploadRoutes.get("/info", UploadController.getUploadInfo);
 
 export default uploadRoutes;

@@ -150,7 +150,72 @@ Need admin rights
 }
 
 4. Upload
+All method need Header: Authorization = Bearer {{auth_token}}
+- GET /api/upload/info
+Response: {
+    "message": "Upload endpoint is ready",
+    "configuration": {
+        "max_file_size": "10MB",
+        "max_file_size_bytes": 10485760,
+        "max_files_per_upload": 10,
+        "allowed_extensions": [
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".gif",
+            ".pdf",
+            ".doc",
+            ".docx",
+            ".xls",
+            ".xlsx",
+            ".txt",
+            ".csv",
+            ".webp",
+            ".svg"
+        ]
+    },
+    "folder_configuration": {
+        "max_folder_name_length": 20,
+        "folder_name_pattern": "alphanumeric, underscore, hyphen, forward slash",
+        "supports_subfolders": true,
+        "subfolder_example": "academic_year/2025"
+    },
+    "file_naming_format": {
+        "with_folder": "{folder_name}/{UUID}-{first25chars}",
+        "with_subfolder": "{main_folder}/{sub_folder}/{UUID}-{first25chars}",
+        "without_folder": "{UUID}-{first25chars}",
+        "uuid_format": "6 characters alphanumeric",
+        "note": "Extension is auto-detected by Cloudinary"
+    },
+    "paths": {
+        "base_path": "Cloudinary (configured via .env)",
+        "custom_upload_path": "{base_folder}/{folder_name}",
+        "url_format": "https://res.cloudinary.com/{cloud_name}/.../{public_id}.{format}"
+    },
+    "usage": {
+        "example_response": {
+            "success": true,
+            "data": {
+                "files": [
+                    {
+                        "original_name": "document.pdf",
+                        "saved_name": "ABC123-document.pdf",
+                        "public_id": "public/docs/ABC123-document",
+                        "url": "https://res.cloudinary.com/your_cloud_name/raw/upload/v123456789/public/docs/ABC123-document.pdf",
+                        "size": 102400,
+                        "type": "application/pdf",
+                        "format": "pdf"
+                    }
+                ],
+                "count": 1,
+                "message": "Files uploaded successfully"
+            }
+        }
+    }
+}
+
 - POST /api/upload
+Need admin rights
 Payload: form-data
 folder_name: candidate
 file: image.png

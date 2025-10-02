@@ -29,7 +29,7 @@ const fileConstraints = {
 export class UploadController {
   /**
    * Validate uploaded files
-   * @param {File[]} files - Array of files to validate
+   * @param {Object[]} files - Array of file objects from form data
    * @returns {Object} Validation result
    */
   static validateFiles(files) {
@@ -115,8 +115,15 @@ export class UploadController {
       // Extract files from form data
       const files = [];
       for (const [key, value] of formData.entries()) {
-        // Accept both 'files', 'file', or any key that contains a File object
-        if (value instanceof File) {
+        // Check if the value is a file-like object (has name, size, type, arrayBuffer)
+        if (
+          value &&
+          typeof value === "object" &&
+          value.name &&
+          value.size !== undefined &&
+          value.type &&
+          typeof value.arrayBuffer === "function"
+        ) {
           files.push(value);
         }
       }
