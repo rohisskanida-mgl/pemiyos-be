@@ -33,7 +33,7 @@ app.use(
         "http://localhost:4173",
         "http://127.0.0.1:3000",
         "http://147.139.209.177",
-        "https://pemiyos-be-production-up.railway.app",
+        "https://pemiyos-be-production.up.railway.app",
       ];
 
       // Allow Netlify domains
