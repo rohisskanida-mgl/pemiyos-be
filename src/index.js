@@ -10,60 +10,54 @@ import uploadRoutes from "./routes/upload.routes.js";
 import statisticRoutes from "./routes/statistic.routes.js";
 import { successResponse, errorResponse } from "./utils/response.util.js";
 import { prettyJSON } from "hono/pretty-json";
-import { secureHeaders } from "hono/secure-headers";
 import fs from "fs/promises";
 import path from "path";
 
 const app = new Hono();
 
-// Middleware - ORDER MATTERS!
+// Middleware
 app.use("*", logger());
 app.use("*", prettyJSON());
 
-// CORS must come BEFORE secureHeaders to avoid conflicts
-app.use(
-  "*",
-  cors({
-    origin: (origin) => {
-      const allowed = [
-        "http://localhost:3000",
-        "http://localhost:8080",
-        "http://localhost:5173",
-        "http://localhost:4173",
-        "http://127.0.0.1:3000",
-        "http://147.139.209.177",
-        "https://pemiyos-be-production-up.railway.app",
-      ];
-
-      // Allow Netlify domains
-      if (origin && origin.includes(".netlify.app")) {
-        return origin;
-      }
-
-      // Check if origin is in allowed list
-      if (allowed.includes(origin)) {
-        return origin;
-      }
-
-      return allowed[0]; // fallback
-    },
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization", "X-Pagination"],
-    exposeHeaders: ["X-Pagination"],
-    credentials: true,
-  })
-);
-
-// SecureHeaders AFTER CORS - with proper configuration to not override CORS
-app.use("*", secureHeaders({
-  crossOriginResourcePolicy: false, // Disable to avoid CORS conflicts
-  crossOriginOpenerPolicy: false,
-  crossOriginEmbedderPolicy: false,
+// NUCLEAR CORS - Allow everything from Netlify
+app.use("*", cors({
+  origin: "*", // Allow ALL origins temporarily to test
+  allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowHeaders: ["*"],
+  exposeHeaders: ["X-Pagination", "Content-Type"],
+  credentials: true,
+  maxAge: 86400,
 }));
+
+// Add manual CORS headers as backup
+app.use("*", async (c, next) => {
+  const origin = c.req.header("Origin");
+  
+  // Set CORS headers manually
+  c.header("Access-Control-Allow-Origin", origin || "*");
+  c.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+  c.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Pagination");
+  c.header("Access-Control-Expose-Headers", "X-Pagination");
+  c.header("Access-Control-Allow-Credentials", "true");
+  c.header("Access-Control-Max-Age", "86400");
+  
+  // Handle preflight
+  if (c.req.method === "OPTIONS") {
+    return c.text("", 204);
+  }
+  
+  await next();
+});
 
 // Global error handler
 app.onError((err, c) => {
   console.error("Global error:", err);
+  
+  // Make sure error response also has CORS headers
+  const origin = c.req.header("Origin");
+  c.header("Access-Control-Allow-Origin", origin || "*");
+  c.header("Access-Control-Allow-Credentials", "true");
+  
   return errorResponse("Internal server error", 500);
 });
 
@@ -112,6 +106,9 @@ app.route("/api", crudRoutes);
 
 // 404 handler
 app.notFound((c) => {
+  const origin = c.req.header("Origin");
+  c.header("Access-Control-Allow-Origin", origin || "*");
+  c.header("Access-Control-Allow-Credentials", "true");
   return errorResponse("Endpoint not found", 404);
 });
 
