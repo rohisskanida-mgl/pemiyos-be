@@ -11,7 +11,7 @@ export async function connectDatabase() {
     
     const client = new MongoClient(uri);
     await client.connect();
-    db_instance = client.db('voting_system');
+    db_instance = client.db('pemiyos');
     console.log('✅ Connected to MongoDB Atlas');
     return db_instance;
   } catch (error) {

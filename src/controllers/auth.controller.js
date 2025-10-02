@@ -30,7 +30,7 @@ export async function getProfile(c) {
     const user = c.get('user');
     
     if (!user) {
-      return errorResponse('User not found in context', 401);
+      return errorResponse('User not found in context', 404);
     }
     
     return successResponse(user, 'Profile retrieved successfully');

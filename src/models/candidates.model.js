@@ -9,6 +9,7 @@ export const schema = {
   period_end: { type: 'number', required: true },
   user_id: { type: 'objectId', required: true },
   name: { type: 'string', required: true },
+  image: { type: 'string' },
   profile: { type: 'string' },
   vision_mission: { type: 'string' },
   program_kerja: { type: 'string' },

@@ -1,0 +1,903 @@
+{
+  "info": {
+    "name": "Voting System API",
+    "description": "MVP backend for organization voting system - Postman Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "LOCAL",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nis\": \"123456\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{LOCAL}}/api/auth/login",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.token) {",
+                  "        pm.collectionVariables.set('auth_token', response.data.token);",
+                  "        console.log('Token saved to collection variable: ' + response.data.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{LOCAL}}/api/auth/profile",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "profile"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{LOCAL}}/api/users?limit=10&page=1",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{LOCAL}}/api/users/:id",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nis\": \"654321\",\n  \"password\": \"password123\",\n  \"nama_lengkap\": \"John Doe\",\n  \"role\": \"voter\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{LOCAL}}/api/users",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_lengkap\": \"John Doe Updated\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{LOCAL}}/api/users/:id",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Soft Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{LOCAL}}/api/users/:id",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Positions",
+      "item": [
+        {
+          "name": "Get All Positions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{LOCAL}}/api/positions?limit=10&page=1",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "positions"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Position by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{LOCAL}}/api/positions/:id",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "positions",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Position",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"position_id\": 1,\n  \"name\": \"President\",\n  \"description\": \"Organization President\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{LOCAL}}/api/positions",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "positions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Position",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Vice President\",\n  \"description\": \"Organization Vice President\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{LOCAL}}/api/positions/:id",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "positions",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Soft Delete Position",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{LOCAL}}/api/positions/:id",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "positions",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Candidates",
+      "item": [
+        {
+          "name": "Get All Candidates",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{LOCAL}}/api/candidates?limit=10&page=1",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "candidates"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Candidate by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{LOCAL}}/api/candidates/:id",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "candidates",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Candidate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"candidate_id\": 1,\n  \"nama_lengkap\": \"Alice Johnson\",\n  \"nis\": \"123456\",\n  \"position_id\": 1,\n  \"vision\": \"Making the organization better\",\n  \"mission\": \"Transparency and progress\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{LOCAL}}/api/candidates",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "candidates"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Candidate",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_lengkap\": \"Alice Johnson Updated\",\n  \"vision\": \"Updated vision\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{LOCAL}}/api/candidates/:id",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "candidates",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Soft Delete Candidate",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{LOCAL}}/api/candidates/:id",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "candidates",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Elections",
+      "item": [
+        {
+          "name": "Get All Elections",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{LOCAL}}/api/elections?limit=10&page=1",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "elections"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Election by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{LOCAL}}/api/elections/:id",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "elections",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Election",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"election_id\": 1,\n  \"name\": \"2024 Organization Election\",\n  \"description\": \"Annual election for organization positions\",\n  \"period_start\": \"2024-01-01T00:00:00Z\",\n  \"period_end\": \"2024-01-31T23:59:59Z\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{LOCAL}}/api/elections",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "elections"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Election",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"2024 Organization Election Updated\",\n  \"description\": \"Updated annual election\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{LOCAL}}/api/elections/:id",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "elections",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Soft Delete Election",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{LOCAL}}/api/elections/:id",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "elections",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Votes",
+      "item": [
+        {
+          "name": "Get All Votes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{LOCAL}}/api/votes?limit=10&page=1",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "votes"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Vote by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{LOCAL}}/api/votes/:id",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "votes",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Vote",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"user_id_here\",\n  \"candidate_id\": 1,\n  \"position_id\": 1,\n  \"period_start\": \"2024-01-01T00:00:00Z\",\n  \"period_end\": \"2024-01-31T23:59:59Z\",\n  \"notes\": \"Voted for president\"\n}"
+            },
+            "url": {
+              "raw": "{{LOCAL}}/api/votes",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "votes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Vote",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Updated vote notes\"\n}"
+            },
+            "url": {
+              "raw": "{{LOCAL}}/api/votes/:id",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "votes",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Soft Delete Vote",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{LOCAL}}/api/votes/:id",
+              "host": [
+                "{{LOCAL}}"
+              ],
+              "path": [
+                "api",
+                "votes",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

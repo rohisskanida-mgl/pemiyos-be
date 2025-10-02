@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import * as crudController from '../controllers/crud.controller.js';
-import { authMiddleware } from '../middleware/auth.middleware.js';
+import * as CrudController from '../controllers/crud.controller.js';
+import { authMiddleware, adminMiddleware } from '../middleware/auth.middleware.js';
 
 const crud = new Hono();
 
@@ -8,10 +8,12 @@ const crud = new Hono();
 crud.use('*', authMiddleware);
 
 // Dynamic CRUD routes
-crud.get('/:collection_name', crudController.getAll);
-crud.get('/:collection_name/:id', crudController.getById);
-crud.post('/:collection_name', crudController.create);
-crud.put('/:collection_name/:id', crudController.update);
-crud.delete('/:collection_name/:id', crudController.softDelete);
-
+crud.delete('/flush', adminMiddleware, CrudController.flushDelete);
+crud.get('/:collection_name', CrudController.getAll);
+crud.post('/:collection_name/bulk', CrudController.bulkCreate);
+crud.get('/:collection_name/:id', CrudController.getById);
+crud.post('/:collection_name', CrudController.create);
+crud.put('/:collection_name/:id', CrudController.update);
+crud.delete('/:collection_name/:id', adminMiddleware, CrudController.softDelete);
+crud.delete('/:collection_name/:id/hard', adminMiddleware, CrudController.hardDelete);
 export default crud;

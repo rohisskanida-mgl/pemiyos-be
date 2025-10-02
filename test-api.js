@@ -5,20 +5,21 @@ const BASE_URL = 'http://localhost:3000';
 
 async function testAPI() {
   console.log('🧪 Testing Voting System API\n');
+  console.log("BASE URL", BASE_URL);
   
   try {
     // Test 1: Health check
     console.log('1. Testing health endpoint...');
     const healthResponse = await fetch(`${BASE_URL}/health`);
     const healthData = await healthResponse.json();
-    console.log('✅ Health check:', healthData.message);
+    console.log('✅ Health check:', healthData);
     
     // Test 2: Login
     console.log('\n2. Testing login...');
     const loginResponse = await fetch(`${BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nis: '123456', password: 'password123' })
+      body: JSON.stringify({ nis: 'Admin', password: 'Admin123' })
     });
     
     if (!loginResponse.ok) {
@@ -26,7 +27,7 @@ async function testAPI() {
     }
     
     const loginData = await loginResponse.json();
-    const token = loginData.data.token;
+    const token = loginData.token;
     console.log('✅ Login successful, got token');
     
     // Test 3: Get profile
@@ -40,7 +41,7 @@ async function testAPI() {
     }
     
     const profileData = await profileResponse.json();
-    console.log('✅ Profile retrieved:', profileData.data.nama_lengkap);
+    console.log('✅ Profile retrieved:', profileData.nama_lengkap);
     
     // Test 4: Get users
     console.log('\n4. Testing users endpoint...');
@@ -53,7 +54,7 @@ async function testAPI() {
     }
     
     const usersData = await usersResponse.json();
-    console.log(`✅ Retrieved ${usersData.data.length} users`);
+    console.log(`✅ Retrieved ${usersData.length} users`);
     
     // Test 5: Get positions
     console.log('\n5. Testing positions endpoint...');
@@ -66,7 +67,7 @@ async function testAPI() {
     }
     
     const positionsData = await positionsResponse.json();
-    console.log(`✅ Retrieved ${positionsData.data.length} positions`);
+    console.log(`✅ Retrieved ${positionsData.length} positions`);
     
     // Test 6: Search users
     console.log('\n6. Testing search functionality...');
@@ -79,7 +80,7 @@ async function testAPI() {
     }
     
     const searchData = await searchResponse.json();
-    console.log(`✅ Search found ${searchData.data.length} users matching "John"`);
+    console.log(`✅ Search found ${searchData.length} users matching "John"`);
     
     // Test 7: Count records
     console.log('\n7. Testing count functionality...');
@@ -92,7 +93,7 @@ async function testAPI() {
     }
     
     const countData = await countResponse.json();
-    console.log(`✅ Total users count: ${countData.data.count}`);
+    console.log(`✅ Total users count: ${countData.count}`);
     
     console.log('\n🎉 All API tests passed!');
     

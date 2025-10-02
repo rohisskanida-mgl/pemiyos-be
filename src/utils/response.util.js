@@ -20,6 +20,6 @@ export function errorResponse(message, status = 400) {
   return jsonResponse({ error: message }, status);
 }
 
-export function successResponse(data, message = "Success", pagination = null) {
-  return jsonResponse({ data, message }, 200, pagination);
+export function successResponse(data, pagination = null) {
+  return jsonResponse(data, 200, pagination);
 }
