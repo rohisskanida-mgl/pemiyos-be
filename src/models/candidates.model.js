@@ -9,7 +9,7 @@ export const schema = {
   period_end: { type: "number", required: true },
   user_id: { type: "objectId", required: true },
   name: { type: "string", required: true },
-  image: { type: "string", default: "/candidate/default.png" },
+  image: { type: "string", default: "https://res.cloudinary.com/dkwzq2dov/image/upload/v1759411233/public/candidate/LK1JKJ-default.png" },
   profile: { type: "string", required: true },
   vision_mission: {
     type: "object",

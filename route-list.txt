@@ -37,8 +37,10 @@ Response: {
 
 3. CRUD API (Applied to all routes), for example are users 
 All method need Header: Authorization = Bearer {{auth_token}}
+
+(1) USERS
 - GET /api/users?page=1&limit=2
-[
+Response: [
     {
         "_id": "68dd4f2c37ae10d5bb88c5a7",
         "nis": "Admin",
@@ -147,6 +149,415 @@ Need admin rights
 Need admin rights
 {
     "message": "user deleted successfully"
+}
+
+(2) POSITIONS
+- GET /api/positions?page=1&limit=2
+Response: [
+    {
+        "_id": "68de145660a0fc3b4dd2fd11",
+        "position_id": 1,
+        "name": "Ketua Umum",
+        "description": "Ketua umum IYOS",
+        "status": "active",
+        "created_at": "2025-10-02T05:57:42.103Z",
+        "updated_at": "2025-10-02T05:57:42.103Z"
+    },
+    {
+        "_id": "68de146560a0fc3b4dd2fd12",
+        "position_id": 2,
+        "name": "Bendahara",
+        "description": "Bendahara IYOS",
+        "status": "active",
+        "created_at": "2025-10-02T05:57:57.223Z",
+        "updated_at": "2025-10-02T05:57:57.223Z"
+    }
+]
+
+- GET /api/positions/:id
+Response: {
+    "_id": "68de146e60a0fc3b4dd2fd13",
+    "position_id": 3,
+    "name": "Sekretaris",
+    "description": "Sekretaris IYOS",
+    "status": "active",
+    "created_at": "2025-10-02T05:58:06.275Z",
+    "updated_at": "2025-10-02T05:58:06.275Z"
+}
+
+- POST /api/positions
+Payload: {
+  "position_id": 4,
+  "name": "Koordinator",
+  "description": "Koordinator",
+  "status": "active"
+}
+Response: {
+    "_id": "68de7a7552dfd38c1b2ed1c9",
+    "position_id": 4,
+    "name": "Koordinator",
+    "description": "Koordinator",
+    "status": "active",
+    "created_at": "2025-10-02T13:13:25.520Z",
+    "updated_at": "2025-10-02T13:13:25.520Z"
+}
+
+- PUT /api/positions/:id
+Payload: {
+  "name": "Vice President",
+  "description": "Organization Vice President",
+  "status": "active"
+}
+Response: {
+    "_id": "68de7a7552dfd38c1b2ed1c9",
+    "position_id": 4,
+    "name": "Vice President",
+    "description": "Organization Vice President",
+    "status": "active",
+    "created_at": "2025-10-02T13:13:25.520Z",
+    "updated_at": "2025-10-02T13:14:07.527Z"
+}
+- DELETE /api/positions/:id (Soft Delete)
+Need admin rights
+{
+    "message": "position deleted successfully"
+}
+
+- DELETE /api/positions/:id/hard (Hard Delete)
+Need admin rights
+{
+    "message": "position deleted successfully"
+}
+
+(3) ELECTIONS
+- GET /api/elections?page=1&limit=1
+Response: [
+    {
+        "_id": "68de1530bfc4b494a88eb006",
+        "election_id": 1,
+        "name": "Pemilihan BPH IYOS 2025",
+        "description": "Pemilihan BPH IYOS periode 2025/2026",
+        "voting_start": "2025-10-03T00:00:00Z",
+        "voting_end": "2025-10-5T23:59:59Z",
+        "period_start": 2025,
+        "period_end": 2026,
+        "status": "ongoing",
+        "created_at": "2025-10-02T06:01:20.568Z",
+        "updated_at": "2025-10-02T06:01:20.568Z"
+    }
+]
+
+- GET /api/elections/:id
+Response: {
+    "_id": "68de1530bfc4b494a88eb006",
+    "election_id": 1,
+    "name": "Pemilihan BPH IYOS 2025",
+    "description": "Pemilihan BPH IYOS periode 2025/2026",
+    "voting_start": "2025-10-03T00:00:00Z",
+    "voting_end": "2025-10-5T23:59:59Z",
+    "period_start": 2025,
+    "period_end": 2026,
+    "status": "ongoing",
+    "created_at": "2025-10-02T06:01:20.568Z",
+    "updated_at": "2025-10-02T06:01:20.568Z"
+}
+
+- POST /api/elections
+Payload: {
+  "election_id": 2,
+  "name": "Pemilihan BPH IYOS 2026",
+  "description": "Pemilihan BPH IYOS periode 2026/2027",
+  "voting_start": "2026-10-03T00:00:00Z",
+  "voting_end": "2026-10-5T23:59:59Z",
+  "period_start": 2026,
+  "period_end": 2027,
+  "status": "upcoming"
+}
+Response: {
+    "_id": "68de7b6d52dfd38c1b2ed1ca",
+    "election_id": 2,
+    "name": "Pemilihan BPH IYOS 2026",
+    "description": "Pemilihan BPH IYOS periode 2026/2027",
+    "voting_start": "2026-10-03T00:00:00Z",
+    "voting_end": "2026-10-5T23:59:59Z",
+    "period_start": 2026,
+    "period_end": 2027,
+    "status": "upcoming",
+    "created_at": "2025-10-02T13:17:33.557Z",
+    "updated_at": "2025-10-02T13:17:33.557Z"
+}
+
+- PUT /api/elections/:id
+Payload: {
+  "name": "2026 Organization Election Updated",
+  "description": "Updated annual election",
+  "status": "closed"
+}
+Response: {
+    "_id": "68de7b6d52dfd38c1b2ed1ca",
+    "election_id": 2,
+    "name": "2026 Organization Election Updated",
+    "description": "Updated annual election",
+    "voting_start": "2026-10-03T00:00:00Z",
+    "voting_end": "2026-10-5T23:59:59Z",
+    "period_start": 2026,
+    "period_end": 2027,
+    "status": "closed",
+    "created_at": "2025-10-02T13:17:33.557Z",
+    "updated_at": "2025-10-02T13:18:19.511Z"
+}
+- DELETE /api/elections/:id (Soft Delete)
+Need admin rights
+{
+    "message": "election deleted successfully"
+}
+
+- DELETE /api/elections/:id/hard (Hard Delete)
+Need admin rights
+{
+    "message": "election deleted successfully"
+}
+
+(4) CANDIDATES
+- GET /api/candidates?limit=1&page=1&include_relations=true&position_id=1
+Response: [
+    {
+        "_id": "68de1778c598937fb1c7a1c0",
+        "position_id": 1,
+        "candidate_number": 1,
+        "period_start": 2025,
+        "period_end": 2026,
+        "user_id": "68de1250b9a859e9ee215165",
+        "name": "HAYYINA MASLIKHATUL UMAMI",
+        "vision_mission": {
+            "vision": "Terwujudnya rohis SMK Negeri 2 Magelang sebagai organisasi yang aktif dalammembangunremaja yang beriman dan berbudi pekerti luhur sesuai Al-Qur'an dan As-Sunnah",
+            "mission": "1. Meningkatkan jiwa Islami dan akhlak mulia\n2. Melaksanakan tugas IYOS dengan penuh tanggung jawab\n3. Aktif dalam pengadaan dan pelaksanaan event/kegiatan organisasi\n4. Memanfaatkan teknologi, informasi, dan komunikasi dalam edukasi Islami\n5. Menjalankan program IYOS tahun sebelumnya"
+        },
+        "program_kerja": "1. SAHAM (Salat Dhuha Bersama) untuk menghidupkan sunnah Rasulullah saw. dengan melaksanakan salat dhuha bersama di sekolah\n2. EdukaYOS (Edukasi Islami Bersama IYOS), yaitu mengadakan sesi sharing/mengedukasi baik secara offline maupun online\n3. IYOS Advice and Q&A Time, yaitu memanfaatkan media online dan offline untuk tanya jawab dan saran seputar IYOS/Islami\n4. Tafsir Class, dengan mengadakan pertemuan antara pembina dan anggota IYOS untuk belajar menafsirkan Al-Qur'an dan syarah hadist\n5. GEMA (Gelora Melodi Islami Mingguan), yaitu mengadakan pelatihan rutin rebana minimal 1 minggu sekali untuk melestarikan kesenian Islam\n6. Mading dan Peduli Masjid, untuk memakmurkan masjid dengan rutin membuat mading minimal 1 bulan sekali dan piket masjid setiap hari secara terjadwal\n7. Mengadakan kumpul rutin setiap hari Jumat di minggu ke-3 dan ke-4\n8. Bintang Islami Berprestasi, mengadakan lomba antar kelas bertema islami di hari besar Islam atau saat bulan Ramadhan\n9. Qalbu Camp, sebagai bentuk evaluasi dan motivasi dalam meningkatkan keimanan, yang dilaksanakan pada akhir semester\n10. Melaksanakan program IYOS tahun sebelumnya, baik yang sudah terlaksana maupun belum terlaksana",
+        "status": "active",
+        "created_at": "2025-10-02T06:11:04.401Z",
+        "updated_at": "2025-10-02T13:19:55.141Z",
+        "profile": "Siswa kelas XI MPLB 1",
+        "image": "https://res.cloudinary.com/dkwzq2dov/image/upload/v1759411169/public/candidate/362RKO-ami.png",
+        "position": {
+            "_id": "68de145660a0fc3b4dd2fd11",
+            "position_id": 1,
+            "name": "Ketua Umum",
+            "description": "Ketua umum IYOS",
+            "status": "active",
+            "created_at": "2025-10-02T05:57:42.103Z",
+            "updated_at": "2025-10-02T05:57:42.103Z"
+        },
+        "user": {
+            "_id": "68de1250b9a859e9ee215165",
+            "nis": "17532",
+            "nama_lengkap": "HAYYINA MASLIKHATUL UMAMI",
+            "password": "$2b$10$B0cJzisMiPgDSTaT.OoNCepn9gW2xxg7VQ65wgc6OGBP81hx6mNZ6",
+            "role": "voter",
+            "class": "XI MPLB 1",
+            "gender": "P",
+            "status": "active",
+            "created_at": "2025-10-02T05:49:02.610Z",
+            "updated_at": "2025-10-02T05:49:02.610Z"
+        }
+    }
+]
+
+- GET /api/candidates/:id
+Response: {
+    "_id": "68de1778c598937fb1c7a1c0",
+    "position_id": 1,
+    "candidate_number": 1,
+    "period_start": 2025,
+    "period_end": 2026,
+    "user_id": "68de1250b9a859e9ee215165",
+    "name": "HAYYINA MASLIKHATUL UMAMI",
+    "vision_mission": {
+        "vision": "Terwujudnya rohis SMK Negeri 2 Magelang sebagai organisasi yang aktif dalammembangunremaja yang beriman dan berbudi pekerti luhur sesuai Al-Qur'an dan As-Sunnah",
+        "mission": "1. Meningkatkan jiwa Islami dan akhlak mulia\n2. Melaksanakan tugas IYOS dengan penuh tanggung jawab\n3. Aktif dalam pengadaan dan pelaksanaan event/kegiatan organisasi\n4. Memanfaatkan teknologi, informasi, dan komunikasi dalam edukasi Islami\n5. Menjalankan program IYOS tahun sebelumnya"
+    },
+    "program_kerja": "1. SAHAM (Salat Dhuha Bersama) untuk menghidupkan sunnah Rasulullah saw. dengan melaksanakan salat dhuha bersama di sekolah\n2. EdukaYOS (Edukasi Islami Bersama IYOS), yaitu mengadakan sesi sharing/mengedukasi baik secara offline maupun online\n3. IYOS Advice and Q&A Time, yaitu memanfaatkan media online dan offline untuk tanya jawab dan saran seputar IYOS/Islami\n4. Tafsir Class, dengan mengadakan pertemuan antara pembina dan anggota IYOS untuk belajar menafsirkan Al-Qur'an dan syarah hadist\n5. GEMA (Gelora Melodi Islami Mingguan), yaitu mengadakan pelatihan rutin rebana minimal 1 minggu sekali untuk melestarikan kesenian Islam\n6. Mading dan Peduli Masjid, untuk memakmurkan masjid dengan rutin membuat mading minimal 1 bulan sekali dan piket masjid setiap hari secara terjadwal\n7. Mengadakan kumpul rutin setiap hari Jumat di minggu ke-3 dan ke-4\n8. Bintang Islami Berprestasi, mengadakan lomba antar kelas bertema islami di hari besar Islam atau saat bulan Ramadhan\n9. Qalbu Camp, sebagai bentuk evaluasi dan motivasi dalam meningkatkan keimanan, yang dilaksanakan pada akhir semester\n10. Melaksanakan program IYOS tahun sebelumnya, baik yang sudah terlaksana maupun belum terlaksana",
+    "status": "active",
+    "created_at": "2025-10-02T06:11:04.401Z",
+    "updated_at": "2025-10-02T13:19:55.141Z",
+    "profile": "Siswa kelas XI MPLB 1",
+    "image": "https://res.cloudinary.com/dkwzq2dov/image/upload/v1759411169/public/candidate/362RKO-ami.png"
+}
+
+- POST /api/candidates
+Payload: {
+    "position_id": 3,
+    "candidate_number": 4,
+    "period_start": 2025,
+    "period_end": 2026,
+    "user_id": "68de1250b9a859e9ee215160",
+    "name": "CHOLISATUL ASTURIYAH",
+    "profile": "XI PPLG 3",
+    "status": "active"
+}
+Response: {
+    "_id": "68de7d7852dfd38c1b2ed1cc",
+    "position_id": 3,
+    "candidate_number": 4,
+    "period_start": 2025,
+    "period_end": 2026,
+    "user_id": "68de1250b9a859e9ee215160",
+    "name": "CHOLISATUL ASTURIYAH",
+    "profile": "XI PPLG 3",
+    "status": "active",
+    "image": "/candidate/default.png",
+    "created_at": "2025-10-02T13:26:16.864Z",
+    "updated_at": "2025-10-02T13:26:16.864Z"
+}
+
+- PUT /api/candidates/:id
+Payload: {
+    // "profile": "Siswi kelas XI AKL 3",
+    "image": "https://res.cloudinary.com/dkwzq2dov/image/upload/v1759411233/public/candidate/LK1JKJ-default.png"
+    // "candidate_number": 1
+}
+Response: {
+    "_id": "68de3246f07a5990a4d86a59",
+    "position_id": 3,
+    "candidate_number": 3,
+    "period_start": 2025,
+    "period_end": 2026,
+    "user_id": "68de1250b9a859e9ee215171",
+    "name": "NADIA NOVITASARI",
+    "profile": "XI PM 1",
+    "status": "active",
+    "image": "https://res.cloudinary.com/dkwzq2dov/image/upload/v1759411233/public/candidate/LK1JKJ-default.png",
+    "created_at": "2025-10-02T08:05:26.365Z",
+    "updated_at": "2025-10-02T13:23:19.799Z"
+}
+- DELETE /api/candidates/:id (Soft Delete)
+Need admin rights
+{
+    "message": "candidate deleted successfully"
+}
+
+- DELETE /api/candidates/:id/hard (Hard Delete)
+Need admin rights
+{
+    "message": "candidate deleted successfully"
+}
+
+(5) VOTES
+- GET /api/votes?limit=1&page=1&include_relations=true&position_id=1
+Response: [
+    {
+        "_id": "68de7de152dfd38c1b2ed1cd",
+        "user_id": "68de1250b9a859e9ee21515c",
+        "candidate_id": "68de1c91146f51f7929c26b3",
+        "position_id": 1,
+        "period_start": 2025,
+        "period_end": 2026,
+        "notes": "Voting untuk Rava",
+        "created_at": "2025-10-02T13:28:01.463Z",
+        "updated_at": "2025-10-02T13:28:01.463Z",
+        "user": {
+            "_id": "68de1250b9a859e9ee21515c",
+            "nis": "17661",
+            "nama_lengkap": "AFROK ROBIKHATUSSIFA",
+            "password": "$2b$10$.397YtiHwKfuFPLLWLWYGuH3cTEaf6g8FV8coJtLNAahoxhOsqhh.",
+            "role": "voter",
+            "class": "XI PM 2",
+            "gender": "P",
+            "status": "active",
+            "created_at": "2025-10-02T05:49:02.610Z",
+            "updated_at": "2025-10-02T08:07:06.686Z",
+            "last_login_at": "2025-10-02T08:07:06.686Z"
+        },
+        "candidate": {
+            "_id": "68de1c91146f51f7929c26b3",
+            "position_id": 1,
+            "candidate_number": 2,
+            "period_start": 2025,
+            "period_end": 2026,
+            "user_id": "68de1250b9a859e9ee215174",
+            "name": "RAVA PRAYOGA AL-GHIFARI",
+            "vision_mission": {
+                "vision": "Terwujudnya Rohis I.Y.O.S. sebagai organisasi teladan yang berkontribusi aktif dalam pembinaan karakter Islami, mendorong pemahaman dan penerapan syariat, serta menjadi penggerak syiar Islam di lingkungan sekolah.",
+                "mission": "1. Meningkatkan kualitas keimanan dan wawasan keislaman melalui pengadaan kajian dan forum diskusi keagamaan secara rutin.\n2. Menciptakan iklim positif dengan menjadikan anggota I.Y.O.S. sebagai Uswatun Hasanah (teladan yang baik) dalam sikap, akhlak, dan amal keseharian.\n3. Menggerakkan dan mengoptimalkan potensi dakwah siswa/i, baik secara konvensional maupun digital, untuk menyebarkan nilai-nilai Islam.\n4. Menumbuhkan semangat ukhuwah (persaudaraan) dan kepedulian sosial di antara warga sekolah melalui aksi-aksi nyata tolong-menolong dan berbagi."
+            },
+            "program_kerja": "1. Jum’at Religi: Kajian rutin bulanan membahas isu-isu remaja dari perspektif Islam (Fiqh, Adab, Motivasi). Mengundang pembicara dari luar.\n2. One Day One Hadits: Program harian/mingguan yang mengirimkan pesan singkat berisi Hadits pilihan dan penjelasannya melalui grup kelas/media sosial I.Y.O.S.\n3. BBM (Bersih-Bersih Masjid): Program rutin membersihkan dan merawat mushola/fasilitas ibadah bersama pengurus dan siswa/i.\n4. Mading/Buletin Digital \"RISALAH (Rangkuman Informasi Siraman Akhlak dan Laporan Harian)\": Media informasi berisi update kegiatan I.Y.O.S, artikel keislaman ringan, fun fact sejarah Islam, info bermanfaat, serta jadwal shalat.\n5. Halaqah: Program diskusi intensif wajib untuk seluruh pengurus dan anggota inti Rohis I.Y.O.S guna memperkuat akidah, etika kepemimpinan, dan teamwork internal.\n6. MIMBAR: Pelatihan khusus anggota Rohis laki-laki untuk meningkatkan kemampuan public speaking dan berlatih membawakan khutbah Jumat.\n7. BAPER (Bawa Perubahan saat Ramadhan): Program Ramadhan yang menekankan peningkatan spiritual, perbaikan diri (Tazkiyatun Nafs), serta pengembangan skill dakwah anggota Rohis.",
+            "status": "active",
+            "created_at": "2025-10-02T06:32:49.518Z",
+            "updated_at": "2025-10-02T13:21:43.541Z",
+            "image": "https://res.cloudinary.com/dkwzq2dov/image/upload/v1759411287/public/candidate/I5G26E-rava.png",
+            "profile": "Siswa kelas XI PPLG 1"
+        },
+        "position": {
+            "_id": "68de145660a0fc3b4dd2fd11",
+            "position_id": 1,
+            "name": "Ketua Umum",
+            "description": "Ketua umum IYOS",
+            "status": "active",
+            "created_at": "2025-10-02T05:57:42.103Z",
+            "updated_at": "2025-10-02T05:57:42.103Z"
+        }
+    }
+]
+
+- GET /api/votes/:id
+Response: {
+    "_id": "68de7de152dfd38c1b2ed1cd",
+    "user_id": "68de1250b9a859e9ee21515c",
+    "candidate_id": "68de1c91146f51f7929c26b3",
+    "position_id": 1,
+    "period_start": 2025,
+    "period_end": 2026,
+    "notes": "Voting untuk Rava",
+    "created_at": "2025-10-02T13:28:01.463Z",
+    "updated_at": "2025-10-02T13:28:01.463Z"
+}
+
+- POST /api/votes
+Payload: {
+  "user_id": "68de1250b9a859e9ee21515c",
+  "candidate_id": "68de1c91146f51f7929c26b3",
+  "position_id": 1,
+  "period_start": 2025,
+  "period_end": 2026,
+  "notes": "Voting untuk Rava"
+}
+Response: {
+    "_id": "68de7de152dfd38c1b2ed1cd",
+    "user_id": "68de1250b9a859e9ee21515c",
+    "candidate_id": "68de1c91146f51f7929c26b3",
+    "position_id": 1,
+    "period_start": 2025,
+    "period_end": 2026,
+    "notes": "Voting untuk Rava",
+    "created_at": "2025-10-02T13:28:01.463Z",
+    "updated_at": "2025-10-02T13:28:01.463Z"
+}
+
+- PUT /api/votes/:id
+Payload: {
+  "notes": "Updated vote notes"
+}
+Response: {
+    "_id": "68de7de152dfd38c1b2ed1cd",
+    "user_id": "68de1250b9a859e9ee21515c",
+    "candidate_id": "68de1c91146f51f7929c26b3",
+    "position_id": 1,
+    "period_start": 2025,
+    "period_end": 2026,
+    "notes": "Updated vote notes",
+    "created_at": "2025-10-02T13:28:01.463Z",
+    "updated_at": "2025-10-02T13:29:16.537Z"
+}
+- DELETE /api/votes/:id (Soft Delete)
+Need admin rights
+{
+    "message": "vote deleted successfully"
+}
+
+- DELETE /api/votes/:id/hard (Hard Delete)
+Need admin rights
+{
+    "message": "vote deleted successfully"
 }
 
 4. Upload
@@ -275,4 +686,17 @@ Response: {
         .....
     ]
     "total_non_voters": 84
+}
+
+6. Special Query:
+search,
+limit = 10,
+is_count = false,
+page = 1,
+include_relations = false,
+
+Example: 
+GET /api/users?is_count=true
+Response {
+    "count": 85
 }
