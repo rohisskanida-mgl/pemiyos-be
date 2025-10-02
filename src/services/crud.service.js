@@ -211,7 +211,7 @@ export async function findAll(collection_name, query_params = {}) {
     const model = getModel(collection_name);
     const schema = model.schema;
 
-    // Build query
+    // Build query - start with non-deleted documents
     let query = { deleted_at: { $exists: false } };
 
     // Add search query
@@ -222,32 +222,59 @@ export async function findAll(collection_name, query_params = {}) {
 
     // Add additional filters with type conversion
     Object.keys(filters).forEach((key) => {
-      if (
-        filters[key] !== undefined &&
-        filters[key] !== null &&
-        filters[key] !== ""
-      ) {
-        let value = filters[key];
+      let value = filters[key];
+      
+      // Skip undefined, null, or empty string values
+      if (value === undefined || value === null || value === "") {
+        return;
+      }
 
+      // If value is an array with single element, extract it
+      // This handles query params that come as arrays from some frameworks
+      if (Array.isArray(value) && value.length === 1) {
+        value = value[0];
+      }
+
+      // Check if field exists in schema
+      if (schema[key]) {
+        const fieldType = schema[key].type;
+        
         // Convert to appropriate type based on schema
-        if (schema[key]) {
-          if (schema[key].type === "number") {
-            value = Number(value);
-            // Skip if conversion results in NaN
-            if (isNaN(value)) return;
-          } else if (schema[key].type === "objectId") {
-            try {
-              value = new ObjectId(value);
-            } catch (e) {
-              // Skip invalid ObjectId
-              return;
-            }
+        if (fieldType === "number") {
+          const numValue = Number(value);
+          // Skip if conversion results in NaN
+          if (!isNaN(numValue)) {
+            query[key] = numValue;
           }
+        } else if (fieldType === "objectId") {
+          try {
+            query[key] = new ObjectId(value);
+          } catch (e) {
+            // Skip invalid ObjectId
+            console.warn(`Invalid ObjectId for field ${key}:`, value);
+          }
+        } else if (fieldType === "boolean") {
+          // Convert string to boolean
+          query[key] = value === "true" || value === true;
+        } else if (fieldType === "date") {
+          // Convert to Date object
+          const dateValue = new Date(value);
+          if (!isNaN(dateValue.getTime())) {
+            query[key] = dateValue;
+          }
+        } else {
+          // For string and other types, use as-is
+          query[key] = value;
         }
-
+      } else {
+        // Field not in schema, but still allow querying
+        // This handles dynamic fields or fields not defined in schema
         query[key] = value;
       }
     });
+
+    // Debug: Log the final query (remove this after debugging)
+    console.log('Final MongoDB query:', JSON.stringify(query));
 
     // If only count is requested
     if (is_count) {
@@ -569,77 +596,90 @@ export async function flushDelete(collections) {
   }
 }
 
-// Update bulkCreate - apply defaults in the processing loop:
+// Update bulkCreate - apply defaults in the processing loop
 export async function bulkCreate(collection_name, data) {
+  const session = getDatabase().client.startSession();
+  let result;
+
   try {
-    const db = getDatabase();
-    const collection = db.collection(collection_name);
+    result = await session.withTransaction(async () => {
+      const db = getDatabase();
+      const collection = db.collection(collection_name);
 
-    // Special validation for candidates - check if users are already candidates
-    if (collection_name === "candidates") {
-      const userIds = data.map((item) => new ObjectId(item.user_id));
+      // Special validation for candidates - check if users are already candidates
+      if (collection_name === "candidates") {
+        const userIds = data.map((item) => new ObjectId(item.user_id));
 
-      // Group by period to check each period separately
-      const periodGroups = {};
-      data.forEach((item) => {
-        const key = `${item.period_start}-${item.period_end}`;
-        if (!periodGroups[key]) {
-          periodGroups[key] = [];
+        // Group by period to check each period separately
+        const periodGroups = {};
+        data.forEach((item) => {
+          const key = `${item.period_start}-${item.period_end}`;
+          if (!periodGroups[key]) {
+            periodGroups[key] = [];
+          }
+          periodGroups[key].push(item.user_id);
+        });
+
+        // Check for existing candidates in each period
+        for (const [periodKey, userIdsInPeriod] of Object.entries(
+          periodGroups
+        )) {
+          const [period_start, period_end] = periodKey.split("-").map(Number);
+
+          const existingCandidates = await collection
+            .find(
+              {
+                user_id: { $in: userIdsInPeriod.map((id) => new ObjectId(id)) },
+                period_start,
+                period_end,
+                deleted_at: { $exists: false },
+              },
+              { session }
+            )
+            .toArray();
+
+          if (existingCandidates.length > 0) {
+            const existingUserIds = existingCandidates.map((c) =>
+              c.user_id.toString()
+            );
+            throw new Error(
+              `Some users are already registered as candidates for period ${period_start}-${period_end}. User IDs: ${existingUserIds.join(
+                ", "
+              )}. Each user can only be a candidate for one position per period.`
+            );
+          }
         }
-        periodGroups[key].push(item.user_id);
+      }
+
+      // Process each item with defaults, timestamps and ObjectId conversion
+      const processedData = data.map((item) => {
+        const withDefaults = applyDefaults(collection_name, item);
+        const processed = convertObjectIds(addTimestamps(withDefaults));
+        return processed;
       });
 
-      // Check for existing candidates in each period
-      for (const [periodKey, userIdsInPeriod] of Object.entries(periodGroups)) {
-        const [period_start, period_end] = periodKey.split("-").map(Number);
-
-        const existingCandidates = await collection
-          .find({
-            user_id: { $in: userIdsInPeriod.map((id) => new ObjectId(id)) },
-            period_start,
-            period_end,
-            deleted_at: { $exists: false },
-          })
-          .toArray();
-
-        if (existingCandidates.length > 0) {
-          const existingUserIds = existingCandidates.map((c) =>
-            c.user_id.toString()
-          );
-          throw new Error(
-            `Some users are already registered as candidates for period ${period_start}-${period_end}. User IDs: ${existingUserIds.join(
-              ", "
-            )}. Each user can only be a candidate for one position per period.`
-          );
+      // Hash passwords for users if needed
+      if (collection_name === "users") {
+        for (let item of processedData) {
+          if (item.password) {
+            item.password = await bcrypt.hash(item.password, 10);
+          }
         }
       }
-    }
 
-    // Process each item with defaults, timestamps and ObjectId conversion
-    const processedData = data.map((item) => {
-      const withDefaults = applyDefaults(collection_name, item);
-      const processed = convertObjectIds(addTimestamps(withDefaults));
-      return processed;
+      const insertResult = await collection.insertMany(processedData, {
+        ordered: false,
+        session,
+      });
+
+      return {
+        message: "Bulk create successful",
+        insertedCount: insertResult.insertedCount,
+        insertedIds: insertResult.insertedIds,
+      };
     });
 
-    // Hash passwords for users if needed
-    if (collection_name === "users") {
-      for (let item of processedData) {
-        if (item.password) {
-          item.password = await bcrypt.hash(item.password, 10);
-        }
-      }
-    }
-
-    const result = await collection.insertMany(processedData, {
-      ordered: false,
-    });
-
-    return {
-      message: "Bulk create successful",
-      insertedCount: result.insertedCount,
-      insertedIds: result.insertedIds,
-    };
+    return result;
   } catch (error) {
     if (error.code === 11000) {
       throw new Error(
@@ -649,6 +689,8 @@ export async function bulkCreate(collection_name, data) {
     throw new Error(
       `Failed to bulk create ${collection_name.slice(0, -1)}: ${error.message}`
     );
+  } finally {
+    await session.endSession();
   }
 }
 

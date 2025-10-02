@@ -88,21 +88,28 @@ export async function create(c) {
       return errorResponse("Request body is required", 400);
     }
 
-    // Special handling for votes - check constraint
+    // Special handling for votes - update if already exists
     if (collection_name === "votes") {
       const { user_id, position_id, period_start, period_end } = data;
       if (user_id && position_id && period_start && period_end) {
-        const hasExistingVote = await CrudService.checkVoteConstraint(
+        // Check if vote already exists
+        const existingVotes = await CrudService.findAll("votes", {
           user_id,
           position_id,
           period_start,
-          period_end
-        );
-        if (hasExistingVote) {
-          return errorResponse(
-            "User has already voted for this position in this period",
-            409
+          period_end,
+          limit: 1,
+        });
+
+        if (existingVotes.data && existingVotes.data.length > 0) {
+          // Update the existing vote
+          const existingVote = existingVotes.data[0];
+          const result = await CrudService.update(
+            collection_name,
+            existingVote._id.toString(),
+            data
           );
+          return successResponse(result, null, "Vote updated successfully");
         }
       }
     }

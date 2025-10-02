@@ -122,7 +122,10 @@ async function insertSampleData() {
           user_id: insertedUsers[0]._id.toString(),
           name: insertedUsers[0].nama_lengkap,
           profile: "Experienced leader with vision for change",
-          vision_mission: "To create a better organization for everyone",
+          vision_mission: {
+            vision: "To create a better organization for everyone",
+            mission: "To create a better organization for everyone",
+          },
           program_kerja: "1. Improve communication\n2. Increase participation\n3. Better events",
           status: "active"
         },
@@ -134,7 +137,10 @@ async function insertSampleData() {
           user_id: insertedUsers[1]._id.toString(),
           name: insertedUsers[1].nama_lengkap,
           profile: "Fresh perspective with innovative ideas",
-          vision_mission: "Innovation and progress for our organization",
+          vision_mission: {
+            vision: "Innovation and progress for our organization",
+            mission: "Innovation and progress for our organization",
+          },
           program_kerja: "1. Digital transformation\n2. Youth engagement\n3. Sustainability",
           status: "active"
         }
