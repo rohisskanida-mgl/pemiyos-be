@@ -22,25 +22,35 @@ app.use("*", prettyJSON());
 app.use("*", secureHeaders());
 
 // CORS Configuration
-app.use(
-  "*",
-  cors({
-    origin: [
+cors({
+  origin: (origin) => {
+    const allowed = [
       "http://localhost:3000",
       "http://localhost:8080",
-      "http://147.139.209.177",
       "http://localhost:5173",
       "http://localhost:4173",
       "http://127.0.0.1:3000",
-      "https://pemiyos.netlify.app",
+      "http://147.139.209.177",
       "https://pemiyos-be-production-up.railway.app",
-    ],
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization", "X-Pagination"],
-    exposeHeaders: ["X-Pagination"],
-    credentials: true,
-  })
-);
+    ];
+
+    // Allow Netlify domains
+    if (origin && origin.includes(".netlify.app")) {
+      return origin;
+    }
+
+    // Check if origin is in allowed list
+    if (allowed.includes(origin)) {
+      return origin;
+    }
+
+    return allowed[0]; // fallback
+  },
+  allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowHeaders: ["Content-Type", "Authorization", "X-Pagination"],
+  exposeHeaders: ["X-Pagination"],
+  credentials: true,
+});
 
 // Global error handler
 app.onError((err, c) => {
