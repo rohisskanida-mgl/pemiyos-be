@@ -20,6 +20,8 @@ const app = new Hono();
 app.use("*", logger());
 app.use("*", prettyJSON());
 app.use("*", secureHeaders());
+
+// CORS Configuration
 app.use(
   "*",
   cors({
