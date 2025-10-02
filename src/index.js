@@ -41,15 +41,18 @@ app.use(
 
 // Explicitly handle OPTIONS requests
 app.options("*", (c) => {
+  const origin = c.req.header("Origin");
   return c
-    .header("Access-Control-Allow-Origin", "*")
+    .header("Access-Control-Allow-Origin", origin || "")
     .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
     .header(
       "Access-Control-Allow-Headers",
       "Content-Type,Authorization,X-Pagination"
     )
+    .header("Access-Control-Allow-Credentials", "true")
     .text("OK", 200);
 });
+
 
 // Global error handler
 app.onError((err, c) => {
