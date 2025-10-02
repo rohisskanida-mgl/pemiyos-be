@@ -218,19 +218,61 @@ Response: {
 Need admin rights
 Payload: form-data
 folder_name: candidate
-file: image.png
+file: rava.png
 
 Response: {
     "files": [
         {
-            "original_name": "image.png",
-            "saved_name": "candidate-Z2Q34N-image.png",
-            "path": "candidate/candidate-Z2Q34N-image.png",
-            "url": "/candidate/candidate-Z2Q34N-image.png",
-            "size": 82004,
-            "type": "image/png"
+            "original_name": "rava.png",
+            "saved_name": "YWTBG2-rava.png",
+            "public_id": "public/candidate/YWTBG2-rava",
+            "url": "https://res.cloudinary.com/dkwzq2dov/image/upload/v1759408948/public/candidate/YWTBG2-rava.png",
+            "size": 976674,
+            "type": "image/png",
+            "format": "png",
+            "version": 1759408948
         }
     ],
     "count": 1,
     "message": "Files uploaded successfully"
+}
+
+5. Statistic
+Header: Authorization = Bearer {{auth_token}}
+- GET /api/statistic/votes/:position_id
+Response: {
+    "position_id": 1,
+    "total_votes": 0,
+    "data": [
+        {
+            "candidate_number": 1,
+            "name": "HAYYINA MASLIKHATUL UMAMI",
+            "voters": 0
+        },
+        {
+            "candidate_number": 2,
+            "name": "RAVA PRAYOGA AL-GHIFARI",
+            "voters": 0
+        },
+        {
+            "candidate_number": 3,
+            "name": "RAYSHA RARA SAHAZISKA",
+            "voters": 0
+        }
+    ]
+}
+- GET /api/statistic/votes/1?not_votes=true
+Response: {
+    "position_id": 1,
+    "non_voters": [
+        {
+            "_id": "68de1250b9a859e9ee21515b",
+            "nis": "17408",
+            "nama_lengkap": "ADINDA KAYLA YASMINE",
+            "class": "XI AKL 1",
+            "gender": "P"
+        },
+        .....
+    ]
+    "total_non_voters": 84
 }
