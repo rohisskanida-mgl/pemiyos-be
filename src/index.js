@@ -33,6 +33,7 @@ app.use(
       "http://localhost:4173",
       "http://127.0.0.1:3000",
       "https://pemiyos.netlify.app",
+      "https://pemiyos-be-production-up.railway.app",
     ],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization", "X-Pagination"],
