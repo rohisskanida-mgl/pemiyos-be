@@ -30,7 +30,7 @@ app.use(
       "http://localhost:5173",
       "http://localhost:4173",
       "http://127.0.0.1:3000",
-      "https://pemiyos.netlify.app/",
+      "https://pemiyos.netlify.app",
     ],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization", "X-Pagination"],
