@@ -80,32 +80,7 @@ const getContentType = (filePath) => {
   return mimeTypes[ext] || "application/octet-stream";
 };
 
-const serveStaticFile = async (c, folder) => {
-  try {
-    const requestPath = c.req.path.replace(new RegExp(`^${folder}`), "");
-    const filePath = path.join(process.cwd(), folder, requestPath);
-
-    await fs.access(filePath);
-    const file = await fs.readFile(filePath);
-
-    return new Response(file, {
-      status: 200,
-      headers: {
-        "Content-Type": getContentType(filePath),
-        "Cache-Control": "public, max-age=31536000",
-      },
-    });
-  } catch (error) {
-    return c.json({ message: "File not found" }, 404);
-  }
-};
-
 app.get("/", (c) => c.text("PEMIYOS - OK"));
-
-/**
- * Static File Routes
- */
-app.get("/public/*", (c) => serveStaticFile(c, "/public"));
 
 // Health check endpoint
 app.get("/health", (c) => {

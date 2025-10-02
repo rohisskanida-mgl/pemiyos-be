@@ -1,24 +1,21 @@
-import { existsSync, mkdirSync } from "fs";
-import { join, extname } from "path";
-import { writeFile } from "fs/promises";
+import { v2 as cloudinary } from "cloudinary";
+import { join, extname } from "path"; // Keep for path utilities if needed
 
 /**
  * Upload Service
- * Handles file upload operations including folder management and file naming
+ * Handles file upload operations using Cloudinary
  */
 class UploadService {
   constructor() {
-    this.baseUploadPath = join(process.cwd(), "public");
-    this.ensureBaseDirectoryExists();
-  }
+    // Configure Cloudinary from .env
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+      secure: true, // Use HTTPS
+    });
 
-  /**
-   * Ensure the base public directory exists
-   */
-  ensureBaseDirectoryExists() {
-    if (!existsSync(this.baseUploadPath)) {
-      mkdirSync(this.baseUploadPath, { recursive: true });
-    }
+    this.baseFolder = process.env.CLOUDINARY_FOLDER || "public"; // Base folder in Cloudinary
   }
 
   /**
@@ -42,27 +39,17 @@ class UploadService {
   validateFolderName(folderName) {
     if (!folderName) return true; // Optional parameter
     if (folderName.length > 20) return false;
-    // Allow alphanumeric, underscore, hyphen, and forward slash for subfolders
-    return /^[a-zA-Z0-9_\-\/]+$/.test(folderName);
+    // Allow alphanumeric, underscore, hyphen, and forward slash; no leading/trailing slashes, no consecutive slashes
+    return /^[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*$/.test(folderName) && !folderName.startsWith('/') && !folderName.endsWith('/');
   }
 
   /**
-   * Create directory if it doesn't exist
-   * @param {string} dirPath - Directory path to create
-   */
-  ensureDirectoryExists(dirPath) {
-    if (!existsSync(dirPath)) {
-      mkdirSync(dirPath, { recursive: true });
-    }
-  }
-
-  /**
-   * Generate filename according to specifications
+   * Generate public_id according to specifications
    * @param {string} originalName - Original filename
    * @param {string} folderName - Folder name (optional)
-   * @returns {string} Generated filename
+   * @returns {string} Generated public_id (without extension, as Cloudinary handles it)
    */
-  generateFileName(originalName, folderName = null) {
+  generatePublicId(originalName, folderName = null) {
     const uuid = this.generateShortUUID();
     const extension = extname(originalName);
     const nameWithoutExt = originalName.replace(extension, "");
@@ -70,40 +57,24 @@ class UploadService {
     // Truncate original filename to 25 characters
     const truncatedName = nameWithoutExt.substring(0, 25);
 
-    let fileName = "";
+    let publicId = `${uuid}-${truncatedName}`;
 
     if (folderName) {
-      // Handle sub-folders in folder_name (e.g., "academic_year/2025")
-      const folderParts = folderName.split("/");
-      const mainFolder = folderParts[0];
-      const subFolder = folderParts.slice(1).join("-"); // Convert sub-paths to hyphen-separated
-
-      if (subFolder) {
-        fileName = `${mainFolder}-${subFolder}-${uuid}-${truncatedName}${extension}`;
-      } else {
-        fileName = `${mainFolder}-${uuid}-${truncatedName}${extension}`;
-      }
-    } else {
-      fileName = `${uuid}-${truncatedName}${extension}`;
+      // Combine folderName and publicId with forward slashes
+      publicId = `${folderName}/${publicId}`;
     }
 
-    return fileName;
+    // Prefix with base folder, using forward slash
+    publicId = `${this.baseFolder}/${publicId}`;
+
+    // Ensure no backslashes (for Windows compatibility)
+    publicId = publicId.replace(/\\/g, "/");
+
+    return publicId;
   }
 
   /**
-   * Get upload directory path
-   * @param {string} folderName - Folder name (optional)
-   * @returns {string} Full directory path
-   */
-  getUploadDirectory(folderName = null) {
-    if (folderName) {
-      return join(this.baseUploadPath, folderName);
-    }
-    return this.baseUploadPath;
-  }
-
-  /**
-   * Save a single file
+   * Save a single file to Cloudinary
    * @param {File} file - File object from form data
    * @param {string} folderName - Folder name (optional)
    * @returns {Promise<Object>} Object with file information
@@ -117,28 +88,40 @@ class UploadService {
         );
       }
 
-      // Get upload directory and ensure it exists
-      const uploadDir = this.getUploadDirectory(folderName);
-      this.ensureDirectoryExists(uploadDir);
+      // Generate public_id
+      const publicId = this.generatePublicId(file.name, folderName);
 
-      // Generate filename
-      const fileName = this.generateFileName(file.name, folderName);
-      const filePath = join(uploadDir, fileName);
-
-      // Convert file to buffer and save
+      // Convert file to buffer
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      await writeFile(filePath, buffer);
 
-      // Return file information
-      const relativePath = folderName ? `${folderName}/${fileName}` : fileName;
+      // Upload to Cloudinary
+      const uploadResult = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            public_id: publicId, // Custom public_id
+            resource_type: "auto", // Auto-detect file type (image, video, raw)
+            overwrite: false, // Don't overwrite if exists
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        uploadStream.end(buffer);
+      });
+
+      // Return file information (Cloudinary-style)
       return {
         original_name: file.name,
-        saved_name: fileName,
-        path: relativePath,
-        url: `/${relativePath}`,
-        size: file.size,
+        saved_name:
+          uploadResult.public_id.split("/").pop() + extname(file.name), // Extract filename-like
+        public_id: uploadResult.public_id,
+        url: uploadResult.secure_url,
+        size: uploadResult.bytes,
         type: file.type,
+        format: uploadResult.format,
+        version: uploadResult.version, // Optional: Cloudinary version for cache busting
       };
     } catch (error) {
       throw new Error(`Failed to save file ${file.name}: ${error.message}`);
@@ -146,7 +129,7 @@ class UploadService {
   }
 
   /**
-   * Save multiple files
+   * Save multiple files to Cloudinary
    * @param {File[]} files - Array of file objects
    * @param {string} folderName - Folder name (optional)
    * @returns {Promise<Object[]>} Array of file information objects

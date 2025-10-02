@@ -223,7 +223,7 @@ export async function findAll(collection_name, query_params = {}) {
     // Add additional filters with type conversion
     Object.keys(filters).forEach((key) => {
       let value = filters[key];
-      
+
       // Skip undefined, null, or empty string values
       if (value === undefined || value === null || value === "") {
         return;
@@ -238,7 +238,7 @@ export async function findAll(collection_name, query_params = {}) {
       // Check if field exists in schema
       if (schema[key]) {
         const fieldType = schema[key].type;
-        
+
         // Convert to appropriate type based on schema
         if (fieldType === "number") {
           const numValue = Number(value);
@@ -274,7 +274,7 @@ export async function findAll(collection_name, query_params = {}) {
     });
 
     // Debug: Log the final query (remove this after debugging)
-    console.log('Final MongoDB query:', JSON.stringify(query));
+    console.log("Final MongoDB query:", JSON.stringify(query));
 
     // If only count is requested
     if (is_count) {
@@ -485,8 +485,12 @@ export async function softDelete(collection_name, id) {
       query = {
         _id: new ObjectId(id),
         deleted_at: { $exists: false },
-        role: { $ne: "admin" },
       };
+
+      // Only add role check for users collection
+      if (collection_name === "users") {
+        query.role = { $ne: "admin" };
+      }
     } catch (e) {
       throw new Error("Invalid ID format");
     }
@@ -499,6 +503,16 @@ export async function softDelete(collection_name, id) {
     });
 
     if (result.matchedCount === 0) {
+      // Check if it's because the user is an admin
+      if (collection_name === "users") {
+        const doc = await collection.findOne({
+          _id: new ObjectId(id),
+          deleted_at: { $exists: false },
+        });
+        if (doc && doc.role === "admin") {
+          throw new Error("Cannot delete admin user");
+        }
+      }
       throw new Error(`${collection_name.slice(0, -1)} not found`);
     }
 
@@ -520,15 +534,29 @@ export async function hardDelete(collection_name, id) {
       query = {
         _id: new ObjectId(id),
         deleted_at: { $exists: false },
-        role: { $ne: "admin" },
       };
+
+      // Only add role check for users collection
+      if (collection_name === "users") {
+        query.role = { $ne: "admin" };
+      }
     } catch (e) {
       throw new Error("Invalid ID format");
     }
 
     const result = await collection.deleteOne(query);
 
-    if (result.matchedCount === 0) {
+    if (result.deletedCount === 0) {
+      // Check if it's because the user is an admin
+      if (collection_name === "users") {
+        const doc = await collection.findOne({
+          _id: new ObjectId(id),
+          deleted_at: { $exists: false },
+        });
+        if (doc && doc.role === "admin") {
+          throw new Error("Cannot delete admin user");
+        }
+      }
       throw new Error(`${collection_name.slice(0, -1)} not found`);
     }
 

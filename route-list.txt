@@ -1,0 +1,171 @@
+1. Authentication
+- POST /api/auth/login
+Payload: {
+  "nis": "Admin",
+  "password": "Admin123" 
+}
+Response: {
+    "token": "jwt_token",
+    "user": {
+        "_id": "68dd4f2c37ae10d5bb88c5a7",
+        "nis": "Admin",
+        "nama_lengkap": "Admin User",
+        "role": "admin",
+        "status": "active",
+        "created_at": "2025-10-01T15:56:28.588Z",
+        "updated_at": "2025-10-02T08:41:51.611Z",
+        "last_login_at": "2025-10-02T11:56:48.729Z",
+        "class": null,
+        "gender": "L"
+    }
+}
+
+- GET /api/auth/profile
+Header: Authorization = Bearer {{auth_token}}
+Response: {
+    "_id": "68dd4f2c37ae10d5bb88c5a7",
+    "nis": "Admin",
+    "nama_lengkap": "Admin User",
+    "role": "admin",
+    "status": "active",
+    "created_at": "2025-10-01T15:56:28.588Z",
+    "updated_at": "2025-10-02T11:56:48.715Z",
+    "last_login_at": "2025-10-02T11:56:48.715Z",
+    "class": null,
+    "gender": "L"
+}
+
+3. CRUD API (Applied to all routes), for example are users 
+All method need Header: Authorization = Bearer {{auth_token}}
+- GET /api/users?page=1&limit=2
+[
+    {
+        "_id": "68dd4f2c37ae10d5bb88c5a7",
+        "nis": "Admin",
+        "password": "$2b$10$4XJ1NU5shhozbRabz5DSnuwK3Tt79a/v8umbMHhMl65pQMuhfMjhm",
+        "nama_lengkap": "Admin User",
+        "role": "admin",
+        "status": "active",
+        "created_at": "2025-10-01T15:56:28.588Z",
+        "updated_at": "2025-10-02T11:56:48.715Z",
+        "last_login_at": "2025-10-02T11:56:48.715Z",
+        "class": null,
+        "gender": "L"
+    },
+    {
+        "_id": "68de1250b9a859e9ee21515b",
+        "nis": "17408",
+        "nama_lengkap": "ADINDA KAYLA YASMINE",
+        "password": "$2b$10$CPc9znIWAYhbmE70W3kcpuJ/QZ5VqaCAWTOp2mjsJKXkGTJSu2aae",
+        "role": "voter",
+        "class": "XI AKL 1",
+        "gender": "P",
+        "status": "active",
+        "created_at": "2025-10-02T05:49:02.610Z",
+        "updated_at": "2025-10-02T06:45:32.242Z",
+        "last_login_at": "2025-10-02T06:45:32.242Z"
+    }
+]
+
+- GET /api/users/:id
+Response: {
+    "_id": "68de1250b9a859e9ee21515b",
+    "nis": "17408",
+    "nama_lengkap": "ADINDA KAYLA YASMINE",
+    "password": "$2b$10$CPc9znIWAYhbmE70W3kcpuJ/QZ5VqaCAWTOp2mjsJKXkGTJSu2aae",
+    "role": "voter",
+    "class": "XI AKL 1",
+    "gender": "P",
+    "status": "active",
+    "created_at": "2025-10-02T05:49:02.610Z",
+    "updated_at": "2025-10-02T06:45:32.242Z",
+    "last_login_at": "2025-10-02T06:45:32.242Z"
+}
+
+- POST /api/users
+Payload: {
+  "nis": "abcd",
+  "password": "abcd",
+  "nama_lengkap": "abcd",
+  "role": "admin",
+  "status": "active"
+}
+Response: {
+    "_id": "68de6992859f5b70096ded62",
+    "nis": "abcd",
+    "password": "$2b$10$1uZnmJxmJM1hKue6rPZekukNLyhQthmIA.StOIKEdD3uvXXqePlcu",
+    "nama_lengkap": "abcd",
+    "role": "admin",
+    "status": "active",
+    "class": null,
+    "created_at": "2025-10-02T12:01:22.395Z",
+    "updated_at": "2025-10-02T12:01:22.395Z"
+}
+
+- POST /api/users/bulk
+Payload: [
+    {
+        "nis": "abcd2",
+        "password": "abcd",
+        "nama_lengkap": "abcd",
+        "role": "admin",
+        "status": "active"
+    }
+]
+Response: {
+    "message": "Bulk create successful",
+    "insertedCount": 1,
+    "insertedIds": {
+        "0": "68de69cb859f5b70096ded63"
+    }
+}
+
+- PUT /api/users/:id
+Payload: {
+  "nis": "abc updated",
+  "password": "Admin123"
+}
+Response: {
+    "_id": "68de6992859f5b70096ded62",
+    "nis": "abc updated",
+    "password": "$2b$10$hefSOe1TQzvCk5cVDae2k.7.71ocBHj.R74W11Qy7D.eVkHGnpfXG",
+    "nama_lengkap": "abcd",
+    "role": "admin",
+    "status": "active",
+    "class": null,
+    "created_at": "2025-10-02T12:01:22.395Z",
+    "updated_at": "2025-10-02T12:03:07.589Z"
+}
+
+- DELETE /api/users/:id (Soft Delete)
+Need admin rights
+{
+    "message": "user deleted successfully"
+}
+
+- DELETE /api/users/:id/hard (Hard Delete)
+Need admin rights
+{
+    "message": "user deleted successfully"
+}
+
+4. Upload
+- POST /api/upload
+Payload: form-data
+folder_name: candidate
+file: image.png
+
+Response: {
+    "files": [
+        {
+            "original_name": "image.png",
+            "saved_name": "candidate-Z2Q34N-image.png",
+            "path": "candidate/candidate-Z2Q34N-image.png",
+            "url": "/candidate/candidate-Z2Q34N-image.png",
+            "size": 82004,
+            "type": "image/png"
+        }
+    ],
+    "count": 1,
+    "message": "Files uploaded successfully"
+}

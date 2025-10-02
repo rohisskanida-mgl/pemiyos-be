@@ -188,53 +188,31 @@ export class UploadController {
           subfolder_example: "academic_year/2025",
         },
         file_naming_format: {
-          with_folder: "{folder_name}-{UUID}-{first25chars}.{ext}",
-          with_subfolder:
-            "{main_folder}-{sub_folder}-{UUID}-{first25chars}.{ext}",
-          without_folder: "{UUID}-{first25chars}.{ext}",
+          with_folder: "{folder_name}/{UUID}-{first25chars}",
+          with_subfolder: "{main_folder}/{sub_folder}/{UUID}-{first25chars}",
+          without_folder: "{UUID}-{first25chars}",
           uuid_format: "6 characters alphanumeric",
+          note: "Extension is auto-detected by Cloudinary",
         },
         paths: {
-          base_path: "/public",
-          custom_upload_path: "/public/{folder_name}",
-          url_format: "/{folder_name}/{filename}",
+          base_path: "Cloudinary (configured via .env)",
+          custom_upload_path: "{base_folder}/{folder_name}",
+          url_format:
+            "https://res.cloudinary.com/{cloud_name}/.../{public_id}.{format}",
         },
         usage: {
-          endpoint: "POST /upload",
-          method: "multipart/form-data",
-          content_type: "multipart/form-data",
-          authentication: "Required (Bearer token)",
-          fields: {
-            files: {
-              description: "File or array of files",
-              required: true,
-              type: "File[]",
-              field_name: "Any field name (files, file, image, etc.)",
-            },
-            folder_name: {
-              description: "Optional folder name for organizing uploads",
-              required: false,
-              type: "string",
-              max_length: 20,
-              pattern: "^[a-zA-Z0-9_-/]+$",
-            },
-          },
-          example_curl: `curl -X POST http://your-api/upload \\
-  -H "Authorization: Bearer YOUR_TOKEN" \\
-  -F "files=@document.pdf" \\
-  -F "files=@image.jpg" \\
-  -F "folder_name=documents/2025"`,
           example_response: {
             success: true,
             data: {
               files: [
                 {
                   original_name: "document.pdf",
-                  saved_name: "docs-ABC123-document.pdf",
-                  path: "docs/docs-ABC123-document.pdf",
-                  url: "/docs/docs-ABC123-document.pdf",
+                  saved_name: "ABC123-document.pdf", // Simplified
+                  public_id: "public/docs/ABC123-document",
+                  url: "https://res.cloudinary.com/your_cloud_name/raw/upload/v123456789/public/docs/ABC123-document.pdf",
                   size: 102400,
                   type: "application/pdf",
+                  format: "pdf",
                 },
               ],
               count: 1,
