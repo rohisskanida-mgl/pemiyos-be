@@ -16,12 +16,11 @@ import path from "path";
 
 const app = new Hono();
 
-// Middleware
+// Middleware - ORDER MATTERS!
 app.use("*", logger());
 app.use("*", prettyJSON());
-app.use("*", secureHeaders());
 
-// CORS Configuration - FIXED: Added app.use()
+// CORS must come BEFORE secureHeaders to avoid conflicts
 app.use(
   "*",
   cors({
@@ -54,6 +53,13 @@ app.use(
     credentials: true,
   })
 );
+
+// SecureHeaders AFTER CORS - with proper configuration to not override CORS
+app.use("*", secureHeaders({
+  crossOriginResourcePolicy: false, // Disable to avoid CORS conflicts
+  crossOriginOpenerPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}));
 
 // Global error handler
 app.onError((err, c) => {
